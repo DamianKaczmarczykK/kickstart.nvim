@@ -573,13 +573,15 @@ require('lazy').setup({
         pyright = {},
         v_analyzer = {},
         rust_analyzer = {},
+        ols = {},
+        zls = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
         -- Some languages (like typescript) have entire language plugins that can be useful:
         --    https://github.com/pmizio/typescript-tools.nvim
         --
         -- But for many setups, the LSP (`tsserver`) will work just fine
-        -- tsserver = {},
+        tsserver = {},
         --
 
         lua_ls = {
@@ -617,6 +619,9 @@ require('lazy').setup({
       require('mason-lspconfig').setup {
         handlers = {
           function(server_name)
+            if server_name == 'dartls' then
+              return
+            end
             local server = servers[server_name] or {}
             -- This handles overriding only values explicitly passed
             -- by the server configuration above. Useful when disabling
@@ -624,6 +629,19 @@ require('lazy').setup({
             server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
             require('lspconfig')[server_name].setup(server)
           end,
+        },
+      }
+
+      -- NOTE: Dart has no package in Mason so need to be initialized manually
+      require('lspconfig')['dartls'].setup {
+        cmd = { '/home/dkaczmarczyk/Projects/private/external/flutter/bin/dart', 'language-server', '--protocol=lsp' },
+        settings = {
+          dart = {
+            analysisExcludedFolders = {
+              vim.fn.expand '$HOME/Projects/work-itti',
+              vim.fn.expand '$HOME/Projects/private/finance',
+            },
+          },
         },
       }
     end,
